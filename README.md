@@ -11,33 +11,43 @@
 
 ### 示例
 
-可以直接在 demo 中找到一个简单的示例，运行下边的命令即可：
-
-```shell
-cd demo
-go run .
-```
-
-其中 demo.go 代码如下
-
 ```go
 package main
 
 import (
-	"fmt"
-	"github.com/wlbgo/condval"
+  "fmt"
+  "github.com/wlbgo/condval"
 )
 
 func main() {
-	cvc, err := condval.ParseConditionValueConfigFile("demo.json")
-	if err != nil {
-		panic(err)
-	}
+  cvc, err := condval.ParseConditionValueConfig([]byte(`
+[
+  { "condition": "va<=1000",
+    "result": [ { "condition": "va - 300 > va_upper", "result": 101 },
+      { "condition": "va - 200 < va_lower", "result": 102 },
+      { "condition": "va - 300 >= va_lower", "result": "103" },
+      { "condition": "va - 300 < va_lower", "result": 104 }
+    ]
+  },
+  { "condition": "true",
+    "result": [ { "condition": "va - 200 > va_upper", "result": 201 },
+      { "condition": "va - 100 < va_lower", "result": 202 },
+      { "condition": "va - 200 >= va_lower", "result": 203 },
+      { "condition": "va - 200 < va_lower", "result": 204 }
+    ]
+  }
+]
 
-	parameters := map[string]interface{}{"va": 1000, "va_upper": 1200, "va_lower": 800}
-	got, trace, err := cvc.GetResultWithTrace(parameters)
-	fmt.Printf("err: %v, result: %v, trace: %v", err, got, trace)
+`))
+  if err != nil {
+    panic(err)
+  }
+
+  parameters := map[string]interface{}{"va": 1000, "va_upper": 1200, "va_lower": 800}
+  got, trace, err := cvc.GetResultWithTrace(parameters)
+  fmt.Printf("err: %v, result: %v, trace: %v", err, got, trace)
 }
+
 ```
 
 运行上述代码，将会得到下边的输出:
@@ -46,22 +56,15 @@ func main() {
 err: <nil>, result: 104, trace: [0 3]
 ```
 
-输出的含义错误为 `nil`，结果为 `104`，路径为 `[0 3]` 即命中第一个条件中的第三条。
+输出的含义错误为 `nil`，结果为 `104`，路径为 `[0 3]` 即命中 [demo.json](demo/demo.json) 第一个条件中的第三条。
 
-```json
-[
-  {
-    "condition": "va<=1000",
-    "result": [
-      // ...
-      {
-        // matched trace: [0, 3]
-        "condition": "va - 300 < va_lower",
-        "result": 104
-      }
-    ]
-  },
-//...
+---
+
+可以直接在 demo 中找到一个完整demo，运行下边的命令即可：
+
+```shell
+cd demo
+go run .
 ```
 
 ## 配置说明
