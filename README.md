@@ -17,12 +17,12 @@
 package main
 
 import (
-  "fmt"
-  "github.com/wlbgo/condval"
+	"fmt"
+	"github.com/wlbgo/condval"
 )
 
 func main() {
-  cvc, err := condval.ParseConditionValueConfig([]byte(`
+	cvc, err := condval.ParseConditionValueConfig([]byte(`
 [
   { "condition": "va<=1000",
     "result": [ { "condition": "va - 300 > va_upper", "result": 101 },
@@ -41,13 +41,13 @@ func main() {
 ]
 
 `))
-  if err != nil {
-    panic(err)
-  }
+	if err != nil {
+		panic(err)
+	}
 
-  parameters := map[string]interface{}{"va": 1000, "va_upper": 1200, "va_lower": 800}
-  got, trace, err := cvc.GetResultWithTrace(parameters)
-  fmt.Printf("err: %v, result: %v, trace: %v", err, got, trace)
+	parameters := map[string]interface{}{"va": 1000, "va_upper": 1200, "va_lower": 800}
+	got, trace, err := cvc.GetResultWithTrace(parameters)
+	fmt.Printf("err: %v, result: %v, trace: %v", err, got, trace)
 }
 
 ```
@@ -219,10 +219,6 @@ func main() {
 	fmt.Printf("err: %v, result: %v, trace: %v", err, got, trace)
 }
 ```
-
-1. 无匹配条件，继续后续条件判断，直到找到匹配条件或结束(fallover).条件冲突会陷入，而不会继续后续条件判断。
-2. 字符串的处理
-3. 数字的处理
 
 ## TODO benchmark
 
