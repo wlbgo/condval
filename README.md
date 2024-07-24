@@ -1,6 +1,6 @@
 # Condition Value Go Package
 
-[中文简体](README.zh_CN.md)
+[简体中文](README.zh_CN.md)
 
 `condval` is a Go package for evaluating results based on conditional expressions. It supports dynamic conditions,
 nested conditions, and dynamic result evaluation.
