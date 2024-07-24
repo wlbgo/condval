@@ -1,17 +1,22 @@
-# Condition Value Go Pacakge
+# Condition Value Go Package
 
-`condval` 是一个用于根据条件表达式计算结果的Go包。它支持动态条件、嵌套条件和动态计算结果。
+[中文简体](README.zh_CN.md)
 
-可以应用于规则易变，而输入变量固定的场景，不需要构建代码，只需要修改配置就可以更新对应逻辑。
+`condval` is a Go package for evaluating results based on conditional expressions. It supports dynamic conditions,
+nested conditions, and dynamic result evaluation.
 
-## 使用方法
+This package is useful in scenarios where rules are variable but input variables are fixed. You can update the
+corresponding logic by modifying the configuration without needing to rebuild the code.
 
-1. 从JSON文本（文件或字节数组）中加载条件值的配置
-2. 使用 `GetResult` 方法计算结果，或使用 `GetResultWithTrace` 方法计算结果并记录命中条件的路径
+## Usage
 
-配置有单独的小节进行说明，使用之前请认真阅读[注意事项](#注意事项)。
+1. Load the configuration of condition values from JSON text (file or byte array).
+2. Use the `GetResult` method to compute the result, or use the `GetResultWithTrace` method to compute the result and
+   record the path of the matched conditions.
 
-### 示例
+The configuration is explained in a separate section. Please read the [Notes](#notes) carefully before using it.
+
+### Example
 
 ```go
 package main
@@ -39,7 +44,6 @@ func main() {
     ]
   }
 ]
-
 `))
 	if err != nil {
 		panic(err)
@@ -52,37 +56,39 @@ func main() {
 
 ```
 
-运行上述代码，将会得到下边的输出:
+Running the above code will produce the following output:
 
 ```
 err: <nil>, result: 104, trace: [0 3]
 ```
 
-输出的含义错误为 `nil`，结果为 `104`，路径为 `[0 3]` 即命中 [demo.json](demo/demo.json) 第一个条件中的第三条。
+The output means the error is `nil`, the result is `104`, and the path is `[0 3]`, which matches the third condition in
+the first condition set of [demo.json](demo/demo.json).
 
 ---
 
-可以直接在 demo 中找到一个完整demo，运行下边的命令即可：
+You can find a complete demo in the `demo` directory. Run the following command to execute it:
 
 ```shell
 cd demo
 go run .
 ```
 
-## 配置说明
+## Configuration Explanation
 
-配置 schema 详见 [condition-value-config-schema.json](condition-value-config-schema.json)。
+The configuration schema is detailed in [condition-value-config-schema.json](condition-value-config-schema.json).
 
-这里做简单的说明，根节点的是一个数组，我们把他叫做 `ConditionValueConfig`，每个元素是一个 `ConditionValue` 对象，包含两个属性：
+Here is a brief explanation: the root node is an array, which we call `ConditionValueConfig`. Each element is
+a `ConditionValue` object containing two properties:
 
-- `condition`：条件表达式，使用字符串表示。
-- `result`：
-    - 条件满足时返回的结果，可以是任意类型
-    - 如果存在条件嵌套，`result` 应该使用是一个 `ConditionValueConfig`，即嵌套一个配置数组。
+- `condition`: The condition expression, represented as a string.
+- `result`:
+    - The result returned when the condition is met, which can be of any type.
+    - If there are nested conditions, `result` should be a `ConditionValueConfig`, i.e., a nested configuration array.
 
-### 配置示例
+### Configuration Examples
 
-#### 1. 简单条件
+#### 1. Simple Condition
 
 ```json
 [
@@ -93,7 +99,7 @@ go run .
 ]
 ```
 
-#### 2. 始终为真
+#### 2. Always True
 
 ```json
 [
@@ -104,7 +110,7 @@ go run .
 ]
 ```
 
-#### 3. 与条件
+#### 3. AND Condition
 
 ```json
 [
@@ -115,7 +121,7 @@ go run .
 ]
 ```
 
-#### 4. 结果中使用变量
+#### 4. Using Variables in Result
 
 ```json
 [
@@ -126,7 +132,7 @@ go run .
 ]
 ```
 
-#### 5. 嵌套条件
+#### 5. Nested Conditions
 
 ```json
 [
@@ -142,11 +148,12 @@ go run .
 ]
 ```
 
-#### 6. 字符串
+#### 6. Strings
 
-如果返回结果为字符串，会先对其进行运算操作，如果存在变量，会替换为变量的值。
+If the result is a string, it will be evaluated first. If there are variables, they will be replaced with the variable
+values.
 
-因此，如果要使用跟传入变量冲突的字符串，需要将其进行转义：
+Therefore, if you want to use a string that conflicts with the input variables, you need to escape it:
 
 ```json
 [
@@ -161,18 +168,19 @@ go run .
 ]
 ```
 
-## 注意事项
+## Notes
 
-### 条件匹配只命中第一个
+### Only the First Matching Condition is Hit
 
-我们把配置数组中的每个元素叫做 `ConditionValue`，在计算结果时，只会命中第一个满足条件的 `ConditionValue`。
+We call each element in the configuration array a `ConditionValue`. When computing the result, only the first
+matching `ConditionValue` will be hit.
 
-特殊情况下，如果命中 condition1 之后，其结果为嵌套的 `ConditionValueConfig`，但是子结果中没有满足条件的 `ConditionValue`
-，则会错误 `ErrNoCond`。
+In special cases, if `condition1` is hit and its result is a nested `ConditionValueConfig`, but no `ConditionValue` in
+the sub-result matches, an `ErrNoCond` error will occur.
 
-即使外层的有满足条件的 `ConditionValue`，也不会继续。
+Even if there are other matching `ConditionValue` in the outer layer, they will not be evaluated further.
 
-这种处理逻辑跟 ``if`` 的嵌套类似：
+This logic is similar to nested `if` statements:
 
 ```
 if case1 {
@@ -187,18 +195,21 @@ if case1 {
 return resultUnfound
 ```
 
-### 字符串的处理
+### Handling Strings
 
-配置中的result如果是字符串，则会优先进行**运算**，即：将其当做一个表达式进行计算。
-比如 "true" 会被计算为布尔型 `true`；又如表达式中有变量，则会进行对应的计算得到结果。
+If the result in the configuration is a string, it will be evaluated first, i.e., treated as an expression. For
+example, "true" will be evaluated as the boolean `true`; if there are variables in the expression, they will be
+evaluated accordingly.
 
-如果要返回确定的字符串，则需要进行转义，如 `"\"a\""`，会返回字符串 `"a"`，而不是变量 `a` 的值。
+To return a specific string, you need to escape it, such as `"\"a\""`, which will return the string `"a"` instead of the
+value of the variable `a`.
 
-### 整数的处理
+### Handling Integers
 
-配置中的 result 如果是整数或者是整数的表达式，会被当做 `float64` 处理，因此如果进行整数运算，可能不符合预期，需要主动进行干预。
+If the result in the configuration is an integer or an integer expression, it will be treated as `float64`. Therefore,
+integer operations may not meet expectations and may require manual intervention.
 
-下边的结果会得到 `1.05`，而不是 `1`：
+The following result will be `1.05` instead of `1`:
 
 ```go
 package main
@@ -220,7 +231,4 @@ func main() {
 }
 ```
 
-## TODO benchmark
-
-
-
+## TODO Benchmark
