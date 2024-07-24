@@ -1,0 +1,67 @@
+[{
+        "condition": "va<=1000",
+        "result": [{
+                "condition": "va - 300 > va_upper",
+                "result": 101
+            },
+            {
+                "condition": "va - 200 < va_lower",
+                "result": [{
+                    "condition": "va - 100> va_upper",
+                    "result": 102
+                }, {
+                    "condition": "true",
+                    "result": "int(va / 1000 ) * 1000"
+                }]
+            },
+            {
+                "condition": "va - 300 >= va_lower",
+                "result": "103"
+            },
+            {
+                "condition": "va - 300 < va_lower",
+                "result": 104
+            }
+        ]
+    },
+    {
+        "condition": "va<=1100",
+        "result": [{
+                "condition": "va - 200 > va_upper",
+                "result": 201
+            },
+            {
+                "condition": "va - 100 < va_lower",
+                "result": 202
+            },
+            {
+                "condition": "va - 200 >= va_lower",
+                "result": 203
+            },
+            {
+                "condition": "va - 200 < va_lower",
+                "result": 204
+            }
+        ]
+    },
+    {
+        "condition": "true",
+        "result": [{
+                "condition": "va - 300 > va_upper",
+                "result": 301
+            },
+            {
+                "condition": "va - 200 < va_lower",
+                "result": 302
+            },
+            {
+                "condition": "va - 300 >= va_lower",
+                "result": 303
+            },
+            {
+                "condition": "va - 300 < va_lower",
+                "result": 304
+            }
+        ]
+    }
+]

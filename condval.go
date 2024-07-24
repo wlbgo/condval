@@ -7,6 +7,15 @@ import (
 	"os"
 )
 
+var (
+	ErrNoCond    = fmt.Errorf("no condition matched")
+	ErrCompile   = fmt.Errorf("failed to compile expression")
+	ErrRunCode   = fmt.Errorf("failed to run expression")
+	ErrLoadFile  = fmt.Errorf("failed to read file")
+	ErrParseJson = fmt.Errorf("failed to unmarshal JSON")
+	ErrSubResult = fmt.Errorf("failed to marshal sub-result")
+)
+
 type ConditionValue struct {
 	ConditionExpr string      `json:"condition"`
 	Result        interface{} `json:"result"`
@@ -21,15 +30,24 @@ func (cvc ConditionValueConfig) GetResult(parameters map[string]interface{}) (in
 
 func (cvc ConditionValueConfig) GetResultWithTrace(parameters map[string]interface{}) (interface{}, []int, error) {
 	trace := make([]int, 0)
-	for i, cv := range cvc {
-		code := cv.ConditionExpr
+
+	tryRunCode := func(code string) (interface{}, error) {
 		program, err := expr.Compile(code, expr.Env(parameters))
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to compile expression: %w", err)
+			return nil, ErrCompile
 		}
 		result, err := expr.Run(program, parameters)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to run expression: %w", err)
+			return nil, ErrRunCode
+		}
+		return result, nil
+	}
+
+	for i, cv := range cvc {
+		code := cv.ConditionExpr
+		result, err := tryRunCode(code)
+		if err != nil {
+			return nil, nil, err
 		}
 		if result.(bool) {
 			trace = append(trace, i)
@@ -41,11 +59,17 @@ func (cvc ConditionValueConfig) GetResultWithTrace(parameters map[string]interfa
 				trace = append(trace, subTrace...)
 				return subRet, trace, nil
 			} else {
+				if subExpr, ok := cv.Result.(string); ok {
+					result, err := tryRunCode(subExpr)
+					if err == nil {
+						return result, trace, nil
+					}
+				}
 				return cv.Result, trace, nil
 			}
 		}
 	}
-	return nil, nil, fmt.Errorf("no condition matched")
+	return nil, nil, ErrNoCond
 }
 
 func (cvc ConditionValueConfig) Equal(another ConditionValueConfig) bool {
@@ -80,7 +104,7 @@ func (cvc ConditionValueConfig) Equal(another ConditionValueConfig) bool {
 func ParseConditionValueConfigFile(path string) (ConditionValueConfig, error) {
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
+		return nil, ErrLoadFile
 	}
 	return ParseConditionValueConfig(raw)
 }
@@ -95,18 +119,18 @@ func ParseConditionValueConfig(raw []byte) (ConditionValueConfig, error) {
 
 	err := json.Unmarshal(raw, &rawCvc)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
+		return nil, ErrParseJson
 	}
 
 	for _, cv := range rawCvc {
 		if val, ok := cv.Result.([]interface{}); ok {
 			subJson, err := json.Marshal(val)
 			if err != nil {
-				return nil, fmt.Errorf("failed to marshal sub-result: %w", err)
+				return nil, ErrSubResult
 			}
 			subRet, err := ParseConditionValueConfig(subJson)
 			if err != nil {
-				return nil, err
+				return nil, ErrSubResult
 			}
 			cvc = append(cvc, ConditionValue{
 				ConditionExpr: cv.ConditionExpr,
