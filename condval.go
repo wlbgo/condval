@@ -1,3 +1,4 @@
+// Package condval provides functionality to evaluate conditions and return corresponding results.
 package condval
 
 import (
@@ -7,6 +8,7 @@ import (
 	"os"
 )
 
+// Error definitions
 var (
 	ErrNoCond    = fmt.Errorf("no condition matched")
 	ErrCompile   = fmt.Errorf("failed to compile expression")
@@ -16,18 +18,22 @@ var (
 	ErrSubResult = fmt.Errorf("failed to marshal sub-result")
 )
 
+// ConditionValue represents a condition and its corresponding result.
 type ConditionValue struct {
 	ConditionExpr string      `json:"condition"`
 	Result        interface{} `json:"result"`
 }
 
+// ConditionValueConfig is a slice of ConditionValue.
 type ConditionValueConfig []ConditionValue
 
+// GetResult evaluates the conditions in the configuration and returns the result of the first matched condition.
 func (cvc ConditionValueConfig) GetResult(parameters map[string]interface{}) (interface{}, error) {
 	ret, _, err := cvc.GetResultWithTrace(parameters)
 	return ret, err
 }
 
+// GetResultWithTrace evaluates the conditions in the configuration and returns the result of the first matched condition along with the trace of evaluated conditions.
 func (cvc ConditionValueConfig) GetResultWithTrace(parameters map[string]interface{}) (interface{}, []int, error) {
 	trace := make([]int, 0)
 
@@ -72,6 +78,7 @@ func (cvc ConditionValueConfig) GetResultWithTrace(parameters map[string]interfa
 	return nil, nil, ErrNoCond
 }
 
+// Equal checks if two ConditionValueConfig instances are equal.
 func (cvc ConditionValueConfig) Equal(another ConditionValueConfig) bool {
 	if len(cvc) != len(another) {
 		fmt.Println("lengths not equal")
@@ -101,6 +108,7 @@ func (cvc ConditionValueConfig) Equal(another ConditionValueConfig) bool {
 	return true
 }
 
+// ParseConditionValueConfigFile reads a JSON file and parses it into a ConditionValueConfig.
 func ParseConditionValueConfigFile(path string) (ConditionValueConfig, error) {
 	raw, err := os.ReadFile(path)
 	if err != nil {
@@ -109,6 +117,7 @@ func ParseConditionValueConfigFile(path string) (ConditionValueConfig, error) {
 	return ParseConditionValueConfig(raw)
 }
 
+// ParseConditionValueConfig parses a JSON byte slice into a ConditionValueConfig.
 func ParseConditionValueConfig(raw []byte) (ConditionValueConfig, error) {
 	var cvc ConditionValueConfig
 
