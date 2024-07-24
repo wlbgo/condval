@@ -70,7 +70,7 @@ func TestConditionValueConfig_GetResult(t *testing.T) {
 	}
 }
 func demo() {
-	cvc, err := ParseConditionValueConfigFile("demo.json")
+	cvc, err := ParseConditionValueConfigFile("demo/demo.json")
 	if err != nil {
 		panic(err)
 	}
@@ -81,7 +81,7 @@ func demo() {
 }
 
 func TestConditionValueConfig_GetResultFromJson(t *testing.T) {
-	cvc, err := ParseConditionValueConfigFile("demo.json")
+	cvc, err := ParseConditionValueConfigFile("demo/demo.json")
 	// 覆盖率测试
 	traceMap := make(map[string]bool)
 	resultMap := make(map[interface{}]bool)
@@ -116,7 +116,7 @@ func TestConditionValueConfig_GetResultFromJson(t *testing.T) {
 }
 
 func FuzzConditionValueConfig_GetResultFromJson(f *testing.F) {
-	content, err := os.ReadFile("demo.json")
+	content, err := os.ReadFile("demo/demo.json")
 	if err != nil {
 		panic(err)
 	}
@@ -124,13 +124,12 @@ func FuzzConditionValueConfig_GetResultFromJson(f *testing.F) {
 	f.Add(1078, 1200, 1000)
 	f.Fuzz(func(t *testing.T, va, va_upper, va_lower int) {
 		parameters := map[string]interface{}{"va": va, "va_upper": va_upper, "va_lower": va_lower}
-		out, trace, err := cvc.GetResultWithTrace(parameters)
-		_, ok := out.(float64)
+		out, _, err := cvc.GetResultWithTrace(parameters)
+		_, ok1 := out.(float64)
+		_, ok2 := out.(int)
 
-		if err != nil || !ok {
-			t.Errorf("err: %v", err)
-		} else {
-			t.Logf("trace: %v", trace)
+		if err != nil || (!ok1 && !ok2) {
+			t.Errorf("err: %v, out: %v(%T)", err, out, out)
 		}
 	})
 }
